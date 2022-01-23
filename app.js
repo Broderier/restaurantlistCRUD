@@ -3,11 +3,14 @@
 const express = require('express')
 const mongoose = require('mongoose')
 const Restaurant = require('./models/restaurant')
-const app = express()
-const port = 3000
 
 // require express-handlebars here
 const exphbs = require('express-handlebars')
+
+const bodyParser = require('body-parser')
+
+const app = express()
+const port = 3000
 
 mongoose.connect('mongodb://localhost/restaurant-list')
 const db = mongoose.connection
@@ -27,11 +30,25 @@ app.set('view engine', 'handlebars')
 // setting static files
 app.use(express.static('public'))
 
+app.use(bodyParser.urlencoded({ extended: true }))
+
 // routes setting
 app.get('/', (req, res) => {
   Restaurant.find()
     .lean()
     .then(restaurants => res.render('index', { restaurants }))
+    .catch(error => console.log(error))
+})
+
+// 新增餐廳資訊頁面
+app.get('/restaurants/new', (req, res) => {
+  return res.render('new')
+})
+
+// 新增一筆餐廳資料
+app.post('/restaurants', (req, res) => {
+  return Restaurant.create(req.body)
+    .then(() => res.redirect('/'))
     .catch(error => console.log(error))
 })
 
@@ -45,6 +62,27 @@ app.get('/restaurants/:restaurant_id', (req, res) => {
   // const target_restaurant = restaurantList.results.find(restaurant => restaurant.id.toString() === req.params.restaurant_id)
   // res.render('show', { restaurant: target_restaurant })
 })
+
+app.get('/restaurants/:restaurant_id/edit', (req, res) => {
+  const id = req.params.restaurant_id
+  return Restaurant.findById(id)
+    .lean()
+    .then(restaurant => res.render('edit', { restaurant }))
+    .catch(error => console.log(error))
+})
+
+// app.post('/restaurants/:restaurant_id/edit', (req, res) => {
+//   const id = req.params.restaurant_id
+//   const name = req.params.name
+//   // const restaurantData = req.body
+//   return Restaurant.findById(id)
+//     .then(restaurant => {
+//       restaurant.name = name
+//       return restaurant.save()
+//     })
+//     .then(() => res.redirect('/'))
+//     .catch(error => console.log(error))
+// })
 
 app.get('/search', (req, res) => {
   const keyword = req.query.keyword
