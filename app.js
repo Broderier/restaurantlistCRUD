@@ -91,15 +91,35 @@ app.post('/restaurants/:restaurant_id/edit', (req, res) => {
     .catch(error => console.log(error))
 })
 
-app.get('/search', (req, res) => {
-  const keyword = req.query.keyword
-  const restaurants = restaurantList.results.filter((restaurant) => {
-    return restaurant.name.toLowerCase().includes(keyword.toLocaleLowerCase()) ||
-      restaurant.category.toLowerCase().includes(keyword.toLowerCase())
-  })
-  res.render('index', { restaurants: restaurants, keyword: keyword })
+// 刪除一家餐廳資訊
+app.post('/restaurants/:restaurant_id/delete', (req, res) => {
+  const id = req.params.restaurant_id
+  return Restaurant.findById(id)
+    .then(restaurant => restaurant.remove())
+    .then(() => res.redirect('/'))
+    .catch(error => console.log(error))
 })
 
+app.get('/search', (req, res) => {
+  if (!req.query.keyword) {
+    res.redirect('/')
+  }
+
+  const keyword = req.query.keyword.trim().toLowerCase()
+
+  Restaurant.find({})
+    .lean()
+    .then(restaurants => {
+      const filteredRestaurantData = restaurants.filter(
+        data =>
+          data.name.toLocaleLowerCase().includes(keyword) ||
+          data.category.toLocaleLowerCase().includes(keyword)
+      )
+      res.render('index', { restaurants: filteredRestaurantData, keyword })
+    })
+    .catch(error => console.log(error))
+})
+          
 app.listen(port, () => {
   console.log(`Express is listening on localhost:${port}`)
 })
