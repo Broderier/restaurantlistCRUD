@@ -52,17 +52,16 @@ app.post('/restaurants', (req, res) => {
     .catch(error => console.log(error))
 })
 
+// 瀏覽特定餐廳的詳細資料
 app.get('/restaurants/:restaurant_id', (req, res) => {
   const id = req.params.restaurant_id
   return Restaurant.findById(id)
     .lean()
     .then(restaurant => res.render('show', { restaurant }))
     .catch(error => console.log(error))
-
-  // const target_restaurant = restaurantList.results.find(restaurant => restaurant.id.toString() === req.params.restaurant_id)
-  // res.render('show', { restaurant: target_restaurant })
 })
 
+// 編輯餐廳資訊頁面
 app.get('/restaurants/:restaurant_id/edit', (req, res) => {
   const id = req.params.restaurant_id
   return Restaurant.findById(id)
@@ -71,18 +70,26 @@ app.get('/restaurants/:restaurant_id/edit', (req, res) => {
     .catch(error => console.log(error))
 })
 
-// app.post('/restaurants/:restaurant_id/edit', (req, res) => {
-//   const id = req.params.restaurant_id
-//   const name = req.params.name
-//   // const restaurantData = req.body
-//   return Restaurant.findById(id)
-//     .then(restaurant => {
-//       restaurant.name = name
-//       return restaurant.save()
-//     })
-//     .then(() => res.redirect('/'))
-//     .catch(error => console.log(error))
-// })
+// 編輯餐廳資料
+app.post('/restaurants/:restaurant_id/edit', (req, res) => {
+  const id = req.params.restaurant_id
+  const restaurantData = req.body
+  return Restaurant.findById(id)
+    .then(restaurant => {
+      restaurant.name = restaurantData.name
+      restaurant.name_en = restaurantData.english_name
+      restaurant.category = restaurantData.category
+      restaurant.image = restaurantData.image
+      restaurant.location = restaurantData.address
+      restaurant.phone = restaurantData.phone_number
+      restaurant.google_map = restaurantData.google_map_address
+      restaurant.rating = restaurantData.rating
+      restaurant.description = restaurantData.description
+      return restaurant.save()
+    })
+    .then(() => res.redirect('/'))
+    .catch(error => console.log(error))
+})
 
 app.get('/search', (req, res) => {
   const keyword = req.query.keyword
